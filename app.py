@@ -17,18 +17,19 @@ with st.form("data_form"):
         st.header(section)
         section_questions = questions_df[questions_df['section'] == section]
 
-        for _, row in section_questions.iterrows():
-            q_key = row['question']
-            input_type = row['input_type']
-            options = str(row['options']).split(',') if pd.notna(row['options']) else []
-            unit_required = row['unit_required'] == 'yes'
-
-            if input_type == 'dropdown':
-                responses[q_key] = st.selectbox(q_key, options)
-            elif input_type == 'number':
-                responses[q_key] = st.number_input(q_key, step=1.0)
-            elif input_type == 'text':
-                responses[q_key] = st.text_input(q_key)
+      # Special help for "waste composition"
+            if q_key.strip().lower() == "waste composition":
+                responses[q_key] = st.text_area(q_key, help="Example: 30% organic, 20% glass, 50% paper")
+            else:
+                if input_type == 'dropdown':
+                    responses[q_key] = st.selectbox(q_key, options)
+                elif input_type == 'number':
+                    responses[q_key] = st.number_input(q_key, step=1.0)
+                elif input_type == 'text':
+                    responses[q_key] = st.text_input(q_key)
+                else:
+                    # fallback in case other input types appear
+                    responses[q_key] = st.text_input(q_key)
             
             # Ask for unit if required
             if unit_required:
