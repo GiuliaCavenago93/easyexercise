@@ -17,7 +17,13 @@ with st.form("data_form"):
         st.header(section)
         section_questions = questions_df[questions_df['section'] == section]
 
-      # Special help for "waste composition"
+        for _, row in section_questions.iterrows():
+            q_key = row['question']
+            input_type = row['input_type']
+            options = str(row['options']).split(',') if pd.notna(row['options']) and row['options'] != '' else []
+            unit_required = str(row['unit_required']).strip().lower() == 'yes'
+
+            # Special help for "waste composition"
             if q_key.strip().lower() == "waste composition":
                 responses[q_key] = st.text_area(q_key, help="Example: 30% organic, 20% glass, 50% paper")
             else:
@@ -30,11 +36,14 @@ with st.form("data_form"):
                 else:
                     # fallback in case other input types appear
                     responses[q_key] = st.text_input(q_key)
-            
+
             # Ask for unit if required
             if unit_required:
                 unit_key = f"{q_key} (unit)"
-                responses[unit_key] = st.text_input(unit_key, placeholder="e.g. kg/year, m³/year")
+                if options:
+                    responses[unit_key] = st.selectbox(f"Unit for '{q_key}'", options, key=unit_key)
+                else:
+                    responses[unit_key] = st.text_input(unit_key, placeholder="e.g. kg/year, m³/year", key=unit_key)
 
     submitted = st.form_submit_button("Submit")
 
@@ -45,3 +54,4 @@ if submitted:
     output_file = f"response_{timestamp}.xlsx"
     output_df.to_excel(output_file, index=False)
     st.success(f"✅ Responses saved to {output_file}")
+
